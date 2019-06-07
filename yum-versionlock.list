@@ -1,5 +1,5 @@
 
-# Added locks on Fri May 24 16:56:09 2019
+# Added locks on Fri Jun  7 16:40:11 2019
 0:libusbx-1.0.21-1.el7.*
 0:devtoolset-6-gcc-6.3.1-3.1.el7.*
 0:perl-PathTools-3.40-5.el7.*
@@ -198,7 +198,6 @@
 0:nasm-2.10.07-7.el7.*
 0:python-backports-1.0-8.el7.*
 0:zlib-devel-1.2.7-18.el7.*
-1:libuv-1.27.0-1.el7.*
 0:gettext-libs-0.19.8.1-2.el7.*
 0:urw-fonts-2.4-16.el7.*
 0:perl-Pod-Perldoc-3.20-4.el7.*
@@ -222,6 +221,7 @@
 0:python-IPy-0.75-6.el7.*
 0:devtoolset-6-systemtap-client-3.0-8s.el7.*
 0:perl-Socket-2.010-4.el7.*
+1:libuv-1.29.1-1.el7.*
 0:mesa-dri-drivers-18.0.5-4.el7_6.*
 0:perl-Scalar-List-Utils-1.27-248.el7.*
 0:cairomm-1.12.0-1.el7.*
