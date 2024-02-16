@@ -1,3 +1,10 @@
+2.x.x
+=====
+
+- Dockerfile :
+  - Removed `openssl-devel` package.
+  - Symlinked `openssl11-devel` headers and libraries into `/usr/local/ssl` so they can be automatically found when building Python.
+
 2.1.1
 =====
 

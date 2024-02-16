@@ -104,9 +104,14 @@ RUN yum install -y yum-versionlock && \
 #	Install Python dependencies (needed for Python ssl and sqlite3 modules)
 #
 	yum install -y \
-		openssl-devel \
 		openssl11-devel \
 		sqlite-devel && \
+#
+#	Symlink openssl11 libs and headers to a location where Python's `configure` script can find them
+#
+	mkdir /usr/local/ssl && \
+	ln -s /usr/lib64/openssl11 /usr/local/ssl/lib && \
+	ln -s /usr/include/openssl11 /usr/local/ssl/include && \
 #
 # Install packages needed to generate the
 # Gaffer documentation.
