@@ -346,9 +346,8 @@
 1:libvorbis-1.3.3-8.el7.1.*
 1:make-3.82-24.el7.*
 1:numpy-1.7.1-13.el7.*
-1:openssl11-devel-1.1.1k-6.el7.*
-1:openssl11-libs-1.1.1k-6.el7.*
-1:openssl-devel-1.0.2k-26.el7_9.*
+1:openssl11-devel-1.1.1k-7.el7.*
+1:openssl11-libs-1.1.1k-7.el7.*
 1:perl-Error-0.17020-2.el7.*
 1:perl-parent-0.225-244.el7.*
 1:perl-Pod-Escapes-1.04-299.el7_9.*
