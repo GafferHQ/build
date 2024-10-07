@@ -126,5 +126,6 @@ ENV PYTHONPATH=
 # every time it is run, so we set it ourselves to silence that
 ENV _INKSCAPE_GC="disable"
 
-# Make the Optix SDK available for Cycles builds.
+# Make the Optix SDK and CUDA available to builds that require them.
 ENV OPTIX_ROOT_DIR=/usr/local/NVIDIA-OptiX-SDK-7.3.0
+ENV CUDA_PATH=/usr/local/cuda-11.8
