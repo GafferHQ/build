@@ -68,6 +68,10 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 	rm -f Inkscape-091e20e-x86_64.AppImage && \
 	cd - && \
 #
+# Install meson as it is needed to build LibEpoxy if building Cycles with USD support.
+#
+	pip install meson && \
+#
 # Trim out a few things we don't need. We inherited a lot more than we need from
 # `aswf/ci-base`, and we run out of disk space on GitHub Actions if our container
 # is too big. A particular offender is CUDA, which comes with all sorts of
