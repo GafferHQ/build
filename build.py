@@ -118,7 +118,7 @@ parser.add_argument(
 parser.add_argument(
 	"--docker-image-version",
 	dest = "dockerImageVersion",
-	default = "3.0.0",
+	default = "3.1.0",
 	help = "The Docker image tag to use for Docker builds."
 )
 
