@@ -94,6 +94,12 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 		libnpp-11-8 libnpp-devel-11-8 cuda-cupti-11-8 && \
 	dnf clean all && \
 #
+# After trimming down CUDA, reinstall only the specific CUDA dependencies
+# required for OSL Optix builds.
+	dnf install -y \
+		cuda-nvrtc-devel-11-8 \
+		libcurand-devel-11-8 && \
+#
 # Now we've installed all our packages, update yum-versionlock for all the
 # new packages so we can copy the versionlock.list out of the container when we
 # want to update the build env.

@@ -1,3 +1,8 @@
+3.x.x
+=====
+
+- Dockerfile : Added `cuda-nvrtc-devel-11-8` and `libcurand-devel-11-8` packages.
+
 3.0.0
 =====
 
