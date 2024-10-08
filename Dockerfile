@@ -92,7 +92,6 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 		libcublas-devel-11-8-11.11.3.6-1.x86_64 \
 		libcublas-11-8 libnccl libnccl-devel \
 		libnpp-11-8 libnpp-devel-11-8 cuda-cupti-11-8 && \
-	dnf clean all && \
 #
 # After trimming down CUDA, reinstall only the specific CUDA dependencies
 # required for OSL Optix builds.
@@ -105,7 +104,11 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 # want to update the build env.
 # If there were already locks in the list from the source checkout then the
 # correct version will already be installed and we just ignore this...
-	./versionlock.sh lock-new /tmp/packages
+	./versionlock.sh lock-new /tmp/packages && \
+#
+# Clean the dnf caches once we're finished calling any dnf/yum commands. Updating
+# the versionlock list also populates the cache, so this cleanup is best run last.
+	dnf clean all
 
 # Set WORKDIR back to / to match the behaviour of our CentOS 7 Dockerfile.
 # This makes it easier to deal with copying build artifacts as they will be
