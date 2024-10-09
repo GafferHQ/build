@@ -6,7 +6,7 @@ at-spi2-atk-0:2.26.2-1.el8.*
 colord-libs-0:1.4.2-1.el8.*
 dconf-0:0.28.0-4.el8.*
 gnome-themes-standard-0:3.22.3-4.el8.*
-gtk3-0:3.22.30-11.el8.*
+gtk3-0:3.22.30-12.el8_10.*
 json-glib-0:1.4.4-1.el8.*
 libcanberra-0:0.30-18.el8.*
 libcanberra-gtk3-0:0.30-18.el8.*
@@ -14,12 +14,12 @@ libepoxy-0:1.5.8-1.el8.*
 libgtop2-0:2.38.0-3.el8.*
 libgusb-0:0.3.0-1.el8.*
 libnotify-0:0.7.7-6.el8.*
-llvm-libs-0:16.0.6-3.module+el8.9.0+1409+fbd10de3.*
-mesa-dri-drivers-0:23.1.4-1.el8.*
-mesa-filesystem-0:23.1.4-1.el8.*
+llvm-libs-0:17.0.6-3.module+el8.10.0+1869+0b51ffa4.*
+mesa-dri-drivers-0:23.1.4-3.el8_10.*
+mesa-filesystem-0:23.1.4-3.el8_10.*
 metacity-0:3.28.0-1.el8.*
 rest-0:0.8.1-2.el8.*
 sound-theme-freedesktop-0:0.8-9.el8.*
 startup-notification-0:0.12-15.el8.*
 zenity-0:3.28.1-2.el8.*
-# Added locks on Fri Jan  5 16:21:18 2024
+# Added locks on Mon Oct  7 23:15:55 2024

@@ -68,6 +68,10 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 	rm -f Inkscape-091e20e-x86_64.AppImage && \
 	cd - && \
 #
+# Install meson as it is needed to build LibEpoxy if building Cycles with USD support.
+#
+	pip install meson && \
+#
 # Trim out a few things we don't need. We inherited a lot more than we need from
 # `aswf/ci-base`, and we run out of disk space on GitHub Actions if our container
 # is too big. A particular offender is CUDA, which comes with all sorts of
@@ -92,14 +96,23 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 		libcublas-devel-11-8-11.11.3.6-1.x86_64 \
 		libcublas-11-8 libnccl libnccl-devel \
 		libnpp-11-8 libnpp-devel-11-8 cuda-cupti-11-8 && \
-	dnf clean all && \
+#
+# After trimming down CUDA, reinstall only the specific CUDA dependencies
+# required for OSL Optix builds.
+	dnf install -y \
+		cuda-nvrtc-devel-11-8 \
+		libcurand-devel-11-8 && \
 #
 # Now we've installed all our packages, update yum-versionlock for all the
 # new packages so we can copy the versionlock.list out of the container when we
 # want to update the build env.
 # If there were already locks in the list from the source checkout then the
 # correct version will already be installed and we just ignore this...
-	./versionlock.sh lock-new /tmp/packages
+	./versionlock.sh lock-new /tmp/packages && \
+#
+# Clean the dnf caches once we're finished calling any dnf/yum commands. Updating
+# the versionlock list also populates the cache, so this cleanup is best run last.
+	dnf clean all
 
 # Set WORKDIR back to / to match the behaviour of our CentOS 7 Dockerfile.
 # This makes it easier to deal with copying build artifacts as they will be
@@ -113,5 +126,6 @@ ENV PYTHONPATH=
 # every time it is run, so we set it ourselves to silence that
 ENV _INKSCAPE_GC="disable"
 
-# Make the Optix SDK available for Cycles builds.
+# Make the Optix SDK and CUDA available to builds that require them.
 ENV OPTIX_ROOT_DIR=/usr/local/NVIDIA-OptiX-SDK-7.3.0
+ENV CUDA_PATH=/usr/local/cuda-11.8

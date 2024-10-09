@@ -1,3 +1,11 @@
+3.1.0
+=====
+
+- Dockerfile :
+  - Added `cuda-nvrtc-devel-11-8` and `libcurand-devel-11-8` packages.
+  - Added `meson`.
+  - Set `CUDA_PATH` environment variable.
+
 3.0.0
 =====
 
