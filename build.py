@@ -345,7 +345,7 @@ if args.project == "gaffer" :
 	# preferred python from the environment. SCons itself
 	# unfortunately hardcodes `/usr/bin/python`, which might not
 	# have the modules we need to build the docs.
-	buildCommand = "python `which scons` package PACKAGE_FILE={buildName}.tar.gz ENV_VARS_TO_IMPORT=PATH DELIGHT_ROOT={delight} ARNOLD_ROOT={arnoldRoot} RENDERMAN_ROOT={renderManRoot} OPTIONS='' -j {cpus}".format(
+	buildCommand = "python `which scons` package INSTALL_DIR=./install/{buildName} PACKAGE_FILE={buildName}.tar.gz ENV_VARS_TO_IMPORT=PATH DELIGHT_ROOT={delight} ARNOLD_ROOT={arnoldRoot} RENDERMAN_ROOT={renderManRoot} OPTIONS='' -j {cpus}".format(
 		cpus=multiprocessing.cpu_count(), **formatVariables
 	)
 
