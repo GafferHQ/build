@@ -23,9 +23,9 @@ Build and upload a dependencies release :
 
 `./build.py --project dependencies --version 8.0.0 --upload 1`
 
-Make a Linux release using Docker on a Mac :
+Make a Linux release using a container on a Mac :
 
-`./build.py --docker 1 --arnoldRoot /path/to/linux/arnoldRoot --delightRoot /path/to/linux/delightRoot --version 1.4.0.0 --upload 1`
+`./build.py --container 1 --arnoldRoot /path/to/linux/arnoldRoot --delightRoot /path/to/linux/delightRoot --version 1.4.0.0 --upload 1`
 
 Docker Cheatsheet
 -----------------

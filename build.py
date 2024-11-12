@@ -65,7 +65,7 @@ parser.add_argument(
 	default = os.environ.get( "ARNOLD_ROOT", "" ),
 	help = "The root of an installation of Arnold. "
 	       "Note that if cross-compiling a Linux build "
-	       "using Docker on a Mac, this must point to "
+	       "using `--container` on a Mac, this must point to "
 	       "a Linux build of Arnold."
 )
 
@@ -74,16 +74,16 @@ parser.add_argument(
 	default = os.environ.get( "DELIGHT", "" ),
 	help = "The root of an installation of 3Delight. "
 	       "Note that if cross-compiling a Linux build "
-	       "using Docker on a Mac, this must point to "
+	       "using `--container` on a Mac, this must point to "
 	       "a Linux build of 3Delight."
 )
 
 parser.add_argument(
 	"--renderManRoot",
 	default = os.environ.get( "RMANTREE", "" ),
-	help = "The root of an installation of RenderMan 22.6 or later. "
+	help = "The root of an installation of RenderMan 26 or later. "
 	       "Note that if cross-compiling a Linux build "
-	       "using Docker on a Mac, this must point to "
+	       "using `--container` on a Mac, this must point to "
 	       "a Linux build of RenderMan."
 )
 
@@ -101,40 +101,40 @@ parser.add_argument(
 )
 
 parser.add_argument(
-	"--docker",
+	"--container",
 	type = distutils.util.strtobool,
 	default = "linux" in sys.platform,
-	help = "Performs the build using a Docker container. This provides a "
+	help = "Performs the build using a container via `podman`. This provides a "
 	       "known build platform so that builds are repeatable."
 )
 
 parser.add_argument(
-	"--docker-image",
-	dest = "dockerImage",
+	"--container-image",
+	dest = "containerImage",
 	default = "ghcr.io/gafferhq/build/build",
-	help = "The container image to use for docker builds."
+	help = "The image to use for container builds."
 )
 
 parser.add_argument(
-	"--docker-image-version",
-	dest = "dockerImageVersion",
+	"--container-image-version",
+	dest = "containerImageVersion",
 	default = "3.1.0",
-	help = "The Docker image tag to use for Docker builds."
+	help = "The image tag to use for container builds."
 )
 
 parser.add_argument(
 	"--interactive",
 	type = distutils.util.strtobool,
 	default = False,
-	help = "When using docker, starts an interactive shell rather than "
+	help = "When using a container, starts an interactive shell rather than "
 		   "performing the build. This is useful for debugging."
 )
 
 args = parser.parse_args()
 
 if args.interactive :
-	if not args.docker :
-		parser.exit( 1, "--interactive requires --docker\n" )
+	if not args.container :
+		parser.exit( 1, "--interactive requires --container\n" )
 	if args.version or args.upload :
 		parser.exit( 1, "--interactive can not be used with other flags\n" )
 else :
@@ -156,7 +156,7 @@ if args.upload :
 
 # Check that the paths to the renderers are sane.
 
-platform = "linux" if "linux" in sys.platform or args.docker else "macos"
+platform = "linux" if "linux" in sys.platform or args.container else "macos"
 libExtension = ".so" if platform == "linux" else ".dylib"
 
 if args.arnoldRoot :
@@ -178,14 +178,14 @@ if args.renderManRoot :
 # in string formatting operations, and use it to figure out the name
 # for the package we will eventually be generating.
 
-if args.docker :
-	# If we're going to build with Docker, make sure we're using the
+if args.container :
+	# If we're going to build in a container, make sure we're using the
 	# same value for `GAFFER_BUILD_ENVIRONMENT`.
-	subprocess.check_call( [ "docker", "pull", "{}:{}".format( args.dockerImage, args.dockerImageVersion ) ] )
-	dockerInfo = subprocess.check_output(
-		[ "docker", "image", "inspect", "{}:{}".format( args.dockerImage, args.dockerImageVersion ) ]
+	subprocess.check_call( [ "podman", "pull", "{}:{}".format( args.containerImage, args.containerImageVersion ) ] )
+	containerInfo = subprocess.check_output(
+		[ "podman", "image", "inspect", "{}:{}".format( args.containerImage, args.containerImageVersion ) ]
 	)
-	for env in json.loads( dockerInfo )[0]["Config"]["Env"] :
+	for env in json.loads( containerInfo )[0]["Config"]["Env"] :
 		if env.startswith( "GAFFER_BUILD_ENVIRONMENT=" ) :
 			os.environ["GAFFER_BUILD_ENVIRONMENT"] = env.partition( "=" )[2]
 
@@ -230,27 +230,22 @@ def releaseId() :
 if args.upload and releaseId() is None :
 	parser.exit( 1, "Release {version} not found\n".format( **formatVariables ) )
 
-# Restart ourselves inside a Docker container so that we use a repeatable
+# Restart ourselves inside a container so that we use a repeatable
 # build environment.
-if args.docker :
+if args.container :
 
-	image = "%s:%s" % ( args.dockerImage, args.dockerImageVersion )
+	image = "%s:%s" % ( args.containerImage, args.containerImageVersion )
 	containerName = "gafferhq-build-{id}".format( id = uuid.uuid1() )
 
 	# We don't keep build.py in the images (otherwise we'd have to maintain
-	# backwards compatibility when changing this script), so copy it in
+	# backwards compatibility when changing this script), so make a new image
+	# with it in.
 
 	containerPrepCommand = " && ".join( (
-		"docker create --name {name} {image}",
-		"docker cp build.py {name}:/build.py",
-		# This saves our changes to that container, so we can pick it up
-		# in run later. We can't use exec as when you 'start' the image
-		# it immediately exits as there is nothing to do. Docker is process
-		# centric not 'machine' centric. You can either add in nasty sleep
-		# commands into the image, but this seems to be the more 'docker'
-		# way to do it.
-		"docker commit {name} {image}-run",
-		"docker rm {name}"
+		"podman create --name {name} {image}",
+		"podman cp build.py {name}:/build.py",
+		"podman commit {name} {image}-run",
+		"podman rm {name}"
 	) ).format(
 		name = containerName,
 		image = image
@@ -279,20 +274,20 @@ if args.docker :
 	if args.interactive :
 		containerCommand = "env {env} bash".format( env = containerEnv )
 	else :
-		containerCommand = "env {env} bash -c '/build.py --docker 0 --organisation {organisation} --project {project} --version {version} --upload {upload}'".format( env = containerEnv, **formatVariables )
+		containerCommand = "env {env} bash -c '/build.py --container 0 --organisation {organisation} --project {project} --version {version} --upload {upload}'".format( env = containerEnv, **formatVariables )
 
-	dockerCommand = "docker run --cap-add=SYS_PTRACE -it {mounts} --name {name} {image}-run {command}".format(
+	containerCommand = "podman run --cap-add=SYS_PTRACE -it {mounts} --name {name} {image}-run {command}".format(
 		mounts = containerMounts,
 		name = containerName,
 		image = image,
 		command = containerCommand
 	)
-	sys.stderr.write( dockerCommand + "\n" )
-	subprocess.check_call( dockerCommand, shell = True )
+	sys.stderr.write( containerCommand + "\n" )
+	subprocess.check_call( containerCommand, shell = True )
 
 	if not args.interactive :
 		# Copy out the generated package.
-		copyCommand = "docker cp {container}:/{project}-{version}-source/{buildName}.tar.gz ./".format(
+		copyCommand = "podman cp {container}:/{project}-{version}-source/{buildName}.tar.gz ./".format(
 			container = containerName,
 			**formatVariables
 		)
@@ -304,7 +299,7 @@ if args.docker :
 # Here we're actually doing the build, this will run either locally or inside
 # the container bootstrapped above
 
-if os.path.exists( "/.dockerenv" ) and args.project == "gaffer" :
+if os.path.exists( "/run/.containerenv" ) and args.project == "gaffer" :
 
 	# Start an X server so we can generate screenshots when the
 	# documentation builds.
@@ -350,7 +345,7 @@ if args.project == "gaffer" :
 	# preferred python from the environment. SCons itself
 	# unfortunately hardcodes `/usr/bin/python`, which might not
 	# have the modules we need to build the docs.
-	buildCommand = "python `which scons` package PACKAGE_FILE={buildName}.tar.gz ENV_VARS_TO_IMPORT=PATH DELIGHT_ROOT={delight} ARNOLD_ROOT={arnoldRoot} RENDERMAN_ROOT={renderManRoot} OPTIONS='' -j {cpus}".format(
+	buildCommand = "python `which scons` package INSTALL_DIR=./install/{buildName} PACKAGE_FILE={buildName}.tar.gz ENV_VARS_TO_IMPORT=PATH DELIGHT_ROOT={delight} ARNOLD_ROOT={arnoldRoot} RENDERMAN_ROOT={renderManRoot} OPTIONS='' -j {cpus}".format(
 		cpus=multiprocessing.cpu_count(), **formatVariables
 	)
 
