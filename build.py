@@ -62,11 +62,14 @@ parser.add_argument(
 
 parser.add_argument(
 	"--arnoldRoot",
-	default = os.environ.get( "ARNOLD_ROOT", "" ),
+	default = [],
 	help = "The root of an installation of Arnold. "
+	       "May be used multiple times to build for"
+	       "multiple versions of Arnold."
 	       "Note that if cross-compiling a Linux build "
 	       "using `--container` on a Mac, this must point to "
-	       "a Linux build of Arnold."
+	       "a Linux build of Arnold.",
+	action = "append"
 )
 
 parser.add_argument(
@@ -141,6 +144,18 @@ else :
 	if not args.version :
 		parser.exit( "--version argument is required")
 
+# Deal with special cases for `--arnoldRoot``.
+
+if not args.arnoldRoot and "ARNOLD_ROOT" in os.environ :
+	# Emulate default value. We can't specify this via `add_argument()`
+	# because then the command line flag would append a second root
+	# instead of replace the first.
+	args.arnoldRoot.append( os.environ["ARNOLD_ROOT"] )
+else :
+	# Strip any empty roots. This allows `--arnoldRoot ""` to be
+	# used to disable the Arnold build.
+	args.arnoldRoot = [ x for x in args.arnoldRoot if x ]
+
 # Check that our environment contains everything we need to do a build.
 
 if args.upload :
@@ -148,8 +163,8 @@ if args.upload :
 	if "GITHUB_RELEASE_TOKEN" not in os.environ	:
 		parser.exit( 1,  "GITHUB_RELEASE_TOKEN environment variable not set\n" )
 
-	if args.project == "gaffer" and not args.arnoldRoot :
-		parser.exit( 1,  "Release builds must include Arnold (set $ARNOLD_ROOT or --arnoldRoot)\n" )
+	if args.project == "gaffer" and len( args.arnoldRoot ) != 2 :
+		parser.exit( 1,  "Release builds must support two Arnold major versions (pass --arnoldRoot twice)\n" )
 	if args.project == "gaffer" and not args.delightRoot :
 		parser.exit( 1,  "Release builds must include 3Delight (set $DELIGHT_ROOT or --delightRoot)\n" )
 
@@ -159,8 +174,8 @@ if args.upload :
 platform = "linux" if "linux" in sys.platform or args.container else "macos"
 libExtension = ".so" if platform == "linux" else ".dylib"
 
-if args.arnoldRoot :
-	arnoldLib = args.arnoldRoot + "/bin/libai" + libExtension
+for arnoldRoot in args.arnoldRoot :
+	arnoldLib = arnoldRoot + "/bin/libai" + libExtension
 	if not os.path.exists( arnoldLib ) :
 		parser.exit( 1, "{0} not found\n".format( arnoldLib ) )
 
@@ -196,7 +211,6 @@ formatVariables = {
 	"upload" : args.upload,
 	"platform" : platform,
 	"buildEnvironment" : "-{}".format( os.environ["GAFFER_BUILD_ENVIRONMENT"] ) if "GAFFER_BUILD_ENVIRONMENT" in os.environ else "",
-	"arnoldRoot" : args.arnoldRoot,
 	"delight" : args.delightRoot,
 	"renderManRoot" : args.renderManRoot,
 	"releaseToken" : "",
@@ -258,9 +272,8 @@ if args.container :
 		containerEnv.append( "GITHUB_RELEASE_TOKEN=%s" % githubToken )
 
 	containerMounts = []
-	if args.arnoldRoot :
-		containerMounts.append( "-v %s:/arnold:ro,Z" % args.arnoldRoot )
-		containerEnv.append( "ARNOLD_ROOT=/arnold" )
+	for i, arnoldRoot in enumerate( args.arnoldRoot ) :
+		containerMounts.append( f"-v {arnoldRoot}:/arnold{i}:ro,Z" )
 	if args.delightRoot :
 		containerMounts.append( " -v %s:/delight:ro,Z" % args.delightRoot )
 		containerEnv.append( "DELIGHT=/delight" )
@@ -274,7 +287,9 @@ if args.container :
 	if args.interactive :
 		containerCommand = "env {env} bash".format( env = containerEnv )
 	else :
-		containerCommand = "env {env} bash -c '/build.py --container 0 --organisation {organisation} --project {project} --version {version} --upload {upload}'".format( env = containerEnv, **formatVariables )
+		containerCommand = "env {env} bash -c '/build.py --container 0 --organisation {organisation} --project {project} --version {version} --upload {upload} {arnoldRoots}'".format(
+			env = containerEnv, **formatVariables, arnoldRoots = " ".join( f"--arnoldRoot /arnold{i}" for i in range( 0, len( args.arnoldRoot ) ) )
+		)
 
 	containerCommand = "podman run --cap-add=SYS_PTRACE -it {mounts} --name {name} {image}-run {command}".format(
 		mounts = containerMounts,
@@ -339,25 +354,33 @@ if args.project == "gaffer" :
 
 # Perform the build.
 
+buildCommands = []
 if args.project == "gaffer" :
 
+	commonArgs = "INSTALL_DIR=./install/{buildName} PACKAGE_FILE={buildName}.tar.gz ENV_VARS_TO_IMPORT=PATH DELIGHT_ROOT={delight} RENDERMAN_ROOT={renderManRoot} OPTIONS='' -j {cpus}".format(
+		cpus=multiprocessing.cpu_count(), **formatVariables
+	)
 	# We run SCons indirectly via `python` so that it uses our
 	# preferred python from the environment. SCons itself
 	# unfortunately hardcodes `/usr/bin/python`, which might not
 	# have the modules we need to build the docs.
-	buildCommand = "python `which scons` package INSTALL_DIR=./install/{buildName} PACKAGE_FILE={buildName}.tar.gz ENV_VARS_TO_IMPORT=PATH DELIGHT_ROOT={delight} ARNOLD_ROOT={arnoldRoot} RENDERMAN_ROOT={renderManRoot} OPTIONS='' -j {cpus}".format(
-		cpus=multiprocessing.cpu_count(), **formatVariables
-	)
+	buildCommands.append( f"python `which scons` build {commonArgs}" )
+	for arnoldRoot in args.arnoldRoot :
+		buildCommands.append( f"python `which scons` build {commonArgs} ARNOLD_ROOT={arnoldRoot}" )
+	buildCommands.append( f"python `which scons` package {commonArgs} ARNOLD_ROOT={arnoldRoot}" )
 
 else :
 
-	buildCommand = "./build.py --buildDir {cwd}/{buildName} --package {cwd}/{buildName}.tar.gz".format(
-		cwd = os.getcwd(),
-		**formatVariables
+	buildCommands.append(
+		"./build.py --buildDir {cwd}/{buildName} --package {cwd}/{buildName}.tar.gz".format(
+			cwd = os.getcwd(),
+			**formatVariables
+		)
 	)
 
-sys.stderr.write( buildCommand + "\n" )
-subprocess.check_call( buildCommand, shell=True )
+for buildCommand in buildCommands :
+	sys.stderr.write( buildCommand + "\n" )
+	subprocess.check_call( buildCommand, shell=True )
 
 # Upload the build
 
