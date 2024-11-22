@@ -209,7 +209,7 @@ if githubToken :
 	formatVariables[ "auth" ] = '-H "Authorization: token %s"' % githubToken
 
 if args.project == "gaffer" :
-	formatVariables["buildName"] = "{project}-{version}-{platform}".format( **formatVariables )
+	formatVariables["buildName"] = "{project}-{version}-{platform}{buildEnvironment}".format( **formatVariables )
 else :
 	formatVariables["buildName"] = "gafferDependencies-{version}-{platform}{buildEnvironment}".format( **formatVariables )
 
