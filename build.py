@@ -351,7 +351,7 @@ if args.project == "gaffer" :
 
 else :
 
-	buildCommand = "env RMAN_ROOT={delight} ARNOLD_ROOT={arnoldRoot} ./build.py --buildDir {cwd}/{buildName} --package {cwd}/{buildName}.tar.gz".format(
+	buildCommand = "./build.py --buildDir {cwd}/{buildName} --package {cwd}/{buildName}.tar.gz".format(
 		cwd = os.getcwd(),
 		**formatVariables
 	)
