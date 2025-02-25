@@ -10,7 +10,7 @@ Prerequisites
 
 - ARNOLD_ROOT environment variable pointing to installation of Arnold 7.1 or later
 - DELIGHT environment variable pointing to installation of 3delight NSI 2.x
-- Docker 17.05 or later
+- Podman.
 
 Usage
 -----
@@ -27,38 +27,38 @@ Make a Linux release using a container on a Mac :
 
 `./build.py --container 1 --arnoldRoot /path/to/linux/arnoldRoot --delightRoot /path/to/linux/delightRoot --version 1.4.0.0 --upload 1`
 
-Docker Cheatsheet
+Podman Cheatsheet
 -----------------
 
 Remove stopped containers and dangling images :
 
-`docker system prune`
+`podman system prune`
 
 Remove all images, not just temporary container images :
 
-`docker system prune -a`
+`podman system prune -a`
 
 Debug a stopped build container :
 
 ```
 # Find the container of interest
-docker ps -a
+podman ps -a
 # Make a new image from container
-docker commit <containerID> <imageName>
+podman commit <containerID> <imageName>
 # Run interactive session in new image
-docker run -it <imageName> /bin/bash
+podman run -it <imageName> /bin/bash
 ```
 
 Building the build environment
 ------------------------------
 
-Gaffer and Dependency builds are made using pre-published Docker images. These
-images are built from the Dockerfile in this repository. The `build-docker.py`
+Gaffer and Dependency builds are made using pre-published container images. These
+images are built from the Containerfile in this repository. The `build-container.py`
 script aids the building of the images. For example :
 
- `./build-docker.py --tag 1.1.0`
+ `./build-container.py --tag 1.1.0`
 
-> NOTE: The `build-docker.py` uses the simpler flag syntax for most of it options,
+> NOTE: The `build-container.py` uses the simpler flag syntax for most of it options,
 > this means its a little different to `build.py`, we aim to update that over
 > time to match.
 
@@ -73,38 +73,38 @@ to aid updating of the lock list when new packages are added or updates are requ
 
  - `--update-version-locks` When set this will ignore all version locks and
    update `yum-versionlock.list` to the 'current' version of all packages
-   installed during docker's build. The revised file can then be committed and tagged,
-   and a new docker image released.
+   installed during the container build. The revised file can then be committed and tagged,
+   and a new image released.
 
  - `--new-only` When set the existing version lock list will not be cleared.
    This allows the versions to be locked for any new packages installed by
-   changes to the `Dockerfile` without affecting the versions of existing
+   changes to the `Containerfile` without affecting the versions of existing
    packages.
 
 ### Cheat sheet
 
-Added a new package to the image, installed with yum in the Dockerfile:
+Added a new package to the image, installed with yum in the Containerfile:
 
-`./build-docker.py --update-version-locks --new-only --tag x.x.x`
+`./build-container.py --update-version-locks --new-only --tag x.x.x`
 
 Update all packages to latest:
 
-`./build-docker.py --update-version-locks --tag x.x.x`
+`./build-container.py --update-version-locks --tag x.x.x`
 
 ### Releasing a new version of the build environment
 
-Docker images are automatically published to the GitHub Container Registry
+Container images are automatically published to the GitHub Container Registry
 whenever a new release is made via https://github.com/GafferHQ/build/releases.
-This is performed by the `.github/workflows/dockerImagePublish.yml` workflow.
+This is performed by the `.github/workflows/containerImagePublish.yml` workflow.
 Once published, the images can be used by `./build.py` and by the CI process
 for `GafferHQ/gaffer`.
 
-### A note on Docker's caching mechanism
+### A note on Podman's caching mechanism
 
-Docker caches layers based on the `RUN` command string. As such, it does not
+Podman caches layers based on the `RUN` command string. As such, it does not
 known when the version lock file changes. the `--update-version-locks` command
 will always run with `--no-cache` set, but if you've just pulled some updates
-from upstream, and are re-building on your machine, you may find docker will
+from upstream, and are re-building on your machine, you may find podman will
 be using an out-of-date cache of one or more of the layers.
 
 As such, its recommended to use `--no-cache` whenever performing release

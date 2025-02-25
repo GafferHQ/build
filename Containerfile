@@ -26,7 +26,7 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 # NOTE: If you add a new yum package here, make sure you update the version
 # lock files as follows and commit the changes to yum-versionlock.list:
 #
-#   ./build-docker.py --update-version-locks --new-only
+#   ./build-container.py --update-version-locks --new-only
 #
 #	We install SCons via `pip install` rather than by
 #	`yum install` because this prevents a Cortex build failure
@@ -57,8 +57,8 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 		docutils==0.17.1 && \
 #
 # Install Inkscape 1.3.2
-# Inkscape is distrubuted as an AppImage. AppImages seemingly can't be run (easily?) under
-# Docker as they require FUSE, so we extract the image so its contents can be run directly.
+# Inkscape is distributed as an AppImage. AppImages seemingly can't be run (easily?) in a
+# container as they require FUSE, so we extract the image so its contents can be run directly.
 	mkdir /opt/inkscape-1.3.2 && \
 	cd /opt/inkscape-1.3.2 && \
 	curl -O https://media.inkscape.org/dl/resources/file/Inkscape-091e20e-x86_64.AppImage && \
@@ -114,7 +114,7 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 # the versionlock list also populates the cache, so this cleanup is best run last.
 	dnf clean all
 
-# Set WORKDIR back to / to match the behaviour of our CentOS 7 Dockerfile.
+# Set WORKDIR back to / to match the behaviour of our CentOS 7 container.
 # This makes it easier to deal with copying build artifacts as they will be
 # in the same location in both containers.
 WORKDIR /

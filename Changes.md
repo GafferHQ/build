@@ -1,3 +1,11 @@
+3.x.x
+=====
+
+- Dockerfile : Renamed to Containerfile, since we no longer use Docker.
+- `build-docker.py` :
+  - Reimplemented using `podman`.
+  - Renamed to `build-container.py`, since we no longer use Docker.
+
 3.1.0
 =====
 
