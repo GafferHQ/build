@@ -1,6 +1,11 @@
 3.x.x
 =====
 
+
+
+3.2.0
+=====
+
 - Dockerfile :
   - Renamed to Containerfile, since we no longer use Docker.
   - Added libraries needed by RenderMan.
