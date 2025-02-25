@@ -63,15 +63,6 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument(
-	"--upload",
-	action = 'store_true',
-	help = "Pushes the build image to dockerhub. You must first have used "
-	       "'docker login' to set your credentials. Obsolete, because we now "
-	       "use the GitHub Container Registry instead, with packages being "
-	       "uploaded automatically when we make a release."
-)
-
-parser.add_argument(
 	"--tag",
 	dest = "tag",
 	default = "latest",
@@ -124,7 +115,6 @@ args = parser.parse_args()
 #  1. Copy in versionlock list from source control or a blank one
 #  2. Perform build
 #  3. Copy out versionlock list if requested
-#  4. Upload final image to dockerhub
 
 imageTag = "{image}:{tag}".format( image = args.image, tag = args.tag )
 
@@ -164,10 +154,3 @@ if args.updateVersions :
 	)
 	sys.stderr.write( extractCommand + "\n" )
 	subprocess.check_call( extractCommand, shell = True )
-
-# 4. Upload
-
-if args.upload :
-	pushCommand = "docker push %s" % imageTag
-	sys.stderr.write( pushCommand + "\n" )
-	subprocess.check_call( pushCommand, shell = True )
