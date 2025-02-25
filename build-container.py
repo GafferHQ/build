@@ -53,7 +53,7 @@ parser = argparse.ArgumentParser(
 	    "The yum version locking mechanism works as follows:\n"
 	    " 1. The source checkout contains a yum-versionlock formatted list of\n"
 	    "    package versions.\n"
-	    " 2. The Dockerfile copies this in at the beginning of a build. \n"
+	    " 2. The Containerfile copies this in at the beginning of a build. \n"
 	    " 3. Any yum installs during the build will then respect these versions.\n"
 	    " 4. At the end of the build, if requested, we update the file with the\n"
 	    "    versions of any new (or optionally - all) packages.\n"
@@ -63,32 +63,23 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument(
-	"--upload",
-	action = 'store_true',
-	help = "Pushes the build image to dockerhub. You must first have used "
-	       "'docker login' to set your credentials. Obsolete, because we now "
-	       "use the GitHub Container Registry instead, with packages being "
-	       "uploaded automatically when we make a release."
-)
-
-parser.add_argument(
 	"--tag",
 	dest = "tag",
 	default = "latest",
-	help = "The tag to apply to the build docker image when building the 'build' project."
+	help = "The tag to apply to the built image when building the 'build' project."
 )
 
 parser.add_argument(
 	"--image",
 	default = "gafferhq/build",
-	help = "The dockerhub organisation and image name to use in the image tag."
+	help = "The organisation and image name to use in the image tag."
 )
 
 parser.add_argument(
 	"--no-cache",
 	dest = "noCache",
 	action = 'store_true',
-	help = "Because docker caches layers based on the RUN command string it "
+	help = "Because container layers are cached based on the RUN command string it "
 	       "will fail to include any changes to package version locks, etc... "
 	       "Use this flag to ensure a clean build."
 )
@@ -98,7 +89,7 @@ parser.add_argument(
 	dest = "updateVersions",
 	action = 'store_true',
 	help = "If set, will remove the package manager version locks prior to "
-	       "building the docker image to allow updated packages to be retrieved."
+	       "building the image to allow updated packages to be retrieved."
 )
 
 parser.add_argument(
@@ -124,13 +115,12 @@ args = parser.parse_args()
 #  1. Copy in versionlock list from source control or a blank one
 #  2. Perform build
 #  3. Copy out versionlock list if requested
-#  4. Upload final image to dockerhub
 
 imageTag = "{image}:{tag}".format( image = args.image, tag = args.tag )
 
 # 1. Versionlock management
 
-# As we can't have conditionals in the Dockerfile, we always copy in our
+# As we can't have conditionals in the Containerfile, we always copy in our
 # lock file, so to 'unlock' we simply empty it out so it has no effect.
 if args.updateVersions and not args.newPackagesOnly :
 	sys.stderr.write( "Unlocking all package versions...\n" )
@@ -140,7 +130,7 @@ if args.updateVersions and not args.newPackagesOnly :
 
 # 2. Build the image
 
-buildCommand = "docker build {cache} -t {tag} .".format(
+buildCommand = "podman build {cache} -t {tag} .".format(
 	cache = "--no-cache" if ( args.noCache or args.updateVersions ) else "",
 	tag = imageTag
 )
@@ -152,9 +142,9 @@ subprocess.check_call( buildCommand, shell = True )
 if args.updateVersions :
 	# Extract the updated version lock files from the container
 	extractCommand = " && ".join((
-		"docker create --name {name} {tag}",
-		"docker cp {name}:{versionlockSrc} {versionlockDest}",
-		"docker rm {name}",
+		"podman create --name {name} {tag}",
+		"podman cp {name}:{versionlockSrc} {versionlockDest}",
+		"podman rm {name}",
 		"sort {versionlockDest} -o {versionlockDest}"
 	)).format(
 		name = "gafferhq-build-{id}".format( id = uuid.uuid1() ),
@@ -164,10 +154,3 @@ if args.updateVersions :
 	)
 	sys.stderr.write( extractCommand + "\n" )
 	subprocess.check_call( extractCommand, shell = True )
-
-# 4. Upload
-
-if args.upload :
-	pushCommand = "docker push %s" % imageTag
-	sys.stderr.write( pushCommand + "\n" )
-	subprocess.check_call( pushCommand, shell = True )
