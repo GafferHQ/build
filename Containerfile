@@ -12,7 +12,7 @@ ENV GAFFER_BUILD_ENVIRONMENT="gcc11"
 # As we don't want to inadvertently grab newer versions of our yum-installed
 # packages, we use yum-versionlock to keep them pinned. We track the list of
 # image packages here, then compare after our install steps to see what was
-# added, and only lock those. This saves us storing redundant entires for
+# added, and only lock those. This saves us storing redundant entries for
 # packages installed in the base image.
 
 # To unlock versions, just make sure yum-versionlock.list is empty in the repo
@@ -71,6 +71,10 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 # Install meson as it is needed to build LibEpoxy if building Cycles with USD support.
 #
 	pip install meson && \
+#
+# Install libraries needed by RenderMan.
+#
+	dnf install -y ncurses-compat-libs && \
 #
 # Trim out a few things we don't need. We inherited a lot more than we need from
 # `aswf/ci-base`, and we run out of disk space on GitHub Actions if our container
