@@ -1,6 +1,11 @@
 3.x.x
 =====
 
+
+
+3.3.0
+=====
+
 - Containerfile : Added `patchelf`.
 
 3.2.0
