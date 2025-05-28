@@ -1,7 +1,7 @@
 3.x.x
 =====
 
-
+- Containerfile : Added `patchelf`.
 
 3.2.0
 =====
