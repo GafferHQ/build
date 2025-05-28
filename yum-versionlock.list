@@ -19,6 +19,7 @@ mesa-dri-drivers-0:23.1.4-3.el8_10.*
 mesa-filesystem-0:23.1.4-3.el8_10.*
 metacity-0:3.28.0-1.el8.*
 ncurses-compat-libs-0:6.1-10.20180224.el8.*
+patchelf-0:0.12-1.el8.*
 rest-0:0.8.1-2.el8.*
 sound-theme-freedesktop-0:0.8-9.el8.*
 startup-notification-0:0.12-15.el8.*

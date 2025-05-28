@@ -76,6 +76,10 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 #
 	dnf install -y ncurses-compat-libs && \
 #
+# Install libraries needed by PySide 6.5.
+#
+	dnf install -y patchelf && \
+#
 # Trim out a few things we don't need. We inherited a lot more than we need from
 # `aswf/ci-base`, and we run out of disk space on GitHub Actions if our container
 # is too big. A particular offender is CUDA, which comes with all sorts of
