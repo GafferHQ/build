@@ -86,7 +86,7 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 # bells and whistles we don't need, and is responsible for at least 5Gb of the
 # total image size. We also remove much of the `ci-base` provided builds of LLVM
 # and Boost. Removing these plus some additional CUDA packages brings the image
-# size down to ~3.6GB.
+# size down to ~3.2GB.
 	rm -rf /usr/local/lib/clang && \
 	rm -f /usr/local/lib/libclang* && \
 	rm -f /usr/local/lib/libLLVM* && \
@@ -99,7 +99,13 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 	rm -f /usr/local/bin/bugpoint && \
 	rm -rf /var/opt/sonar-scanner-4.8.0.2856-linux && \
 	rm -rf /tmp/downloads && \
+	rm -rf /opt/conan && \
+	rm -rf /usr/local/include/boost && \
+	rm -rf /usr/local/include/llvm* && \
+	rm -rf /usr/local/include/clang* && \
+	rm -rf /usr/share/doc && \
 	dnf remove -y \
+		java-1.8.0-openjdk-headless \
 		cuda-nsight-compute-11-8.x86_64 \
 		libcublas-devel-11-8-11.11.3.6-1.x86_64 \
 		libcublas-11-8 libnccl libnccl-devel \
@@ -120,7 +126,9 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 #
 # Clean the dnf caches once we're finished calling any dnf/yum commands. Updating
 # the versionlock list also populates the cache, so this cleanup is best run last.
-	dnf clean all
+	dnf clean all && \
+	rm -rf /var/cache/dnf && \
+	rm -rf /var/log/*
 
 # Set WORKDIR back to / to match the behaviour of our CentOS 7 container.
 # This makes it easier to deal with copying build artifacts as they will be
