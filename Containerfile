@@ -80,13 +80,17 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 #
 	dnf install -y patchelf && \
 #
+# Install podman. Needed to test RenderMan 27 as it can't run in this Rocky 8 container.
+#
+	dnf install -y podman && \
+#
 # Trim out a few things we don't need. We inherited a lot more than we need from
 # `aswf/ci-base`, and we run out of disk space on GitHub Actions if our container
 # is too big. A particular offender is CUDA, which comes with all sorts of
 # bells and whistles we don't need, and is responsible for at least 5Gb of the
 # total image size. We also remove much of the `ci-base` provided builds of LLVM
 # and Boost. Removing these plus some additional CUDA packages brings the image
-# size down to ~3.2GB.
+# size down to ~3.5GB.
 	rm -rf /usr/local/lib/clang && \
 	rm -f /usr/local/lib/libclang* && \
 	rm -f /usr/local/lib/libLLVM* && \
