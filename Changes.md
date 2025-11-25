@@ -3,6 +3,11 @@
 
 
 
+3.4.0
+=====
+
+- Containerfile : Added `podman`.
+
 3.3.0
 =====
 
