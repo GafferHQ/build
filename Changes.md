@@ -1,3 +1,13 @@
+4.x.x
+=====
+
+- Containerfile :
+  - Changed base image to `nvidia/cuda:11.8.0-devel-rockylinux8`.
+  - Updated Python to 3.12.12.
+  - Updated CMake to 3.31.10.
+  - Updated SCons to 4.10.1.
+  - Updated Ninja to 1.13.2.
+
 3.x.x
 =====
 

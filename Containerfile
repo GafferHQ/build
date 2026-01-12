@@ -1,8 +1,8 @@
-# We start with `aswf/ci-base` as it provides a Rocky 8 environment that meets
-# the glibc requirements of VFXPlatform 2023 (2.28 or lower), with many of our
+# We start with `nvidia/cuda` as it provides a Rocky 8 environment that meets
+# the glibc requirements of VFXPlatform 2023 (2.28 or lower), with some of our
 # build dependencies already pre-installed.
 
-FROM aswf/ci-base:2023.2
+FROM nvidia/cuda:11.8.0-devel-rockylinux8
 
 # Identify the build environment. This can be used by build processes for
 # environment specific behaviour such as naming artifacts built from this
@@ -28,17 +28,66 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 #
 #   ./build-container.py --update-version-locks --new-only
 #
+# Install Python and pip.
+#
+	dnf install -y python3.12 && \
+	alternatives --set python /usr/bin/python3 && \
+	alternatives --set python3 /usr/bin/python3.12 && \
+	curl -sS https://bootstrap.pypa.io/get-pip.py | python3.12 && \
+#
 #	We install SCons via `pip install` rather than by
 #	`yum install` because this prevents a Cortex build failure
 #	caused by SCons picking up the wrong Python version and being
 #	unable to find its own modules.
 #
-	pip install scons==4.6.0 && \
+	pip install scons==4.10.1 && \
+#
+# Install CMake.
+#
+	curl -sSL "https://github.com/Kitware/CMake/releases/download/v3.31.10/cmake-3.31.10-linux-x86_64.sh" -o /tmp/cmake-3.31.10-linux-x86_64.sh && \
+	sh /tmp/cmake-3.31.10-linux-x86_64.sh --skip-license --prefix=/usr/local --exclude-subdir && \
+	rm -f /tmp/cmake-3.31.10-linux-x86_64.sh && \
+#
+# Install GCC Toolset 11.
+#
+	dnf groupinstall -y --setopt=install_weak_deps=False "Development Tools" && \
+	dnf install -y gcc-toolset-11 && \
+#
+# Install packages needed to build Gaffer's dependencies.
+#
+	dnf config-manager --set-enabled powertools && \
+	dnf install -y epel-release && \
+	dnf install -y \
+		# Required by Boost
+		bzip2-devel \
+		# Required by JPEG
+		yasm \
+		# Required by GLEW
+		libX11-devel \
+		mesa-libGL-devel \
+		mesa-libGLU-devel \
+		libXmu-devel \
+		libXi-devel \
+		# Required by Qt
+		fontconfig-devel.x86_64 \
+		libxkbcommon-x11-devel.x86_64 \
+		xcb-util-renderutil-devel \
+		xcb-util-wm-devel \
+		xcb-util-devel \
+		xcb-util-image-devel \
+		xcb-util-keysyms-devel \
+		xcb-util-cursor-devel \
+		# Required by Python
+		openssl-devel \
+		sqlite-devel \
+		# Required by Cortex
+		which && \
 #
 # Install packages needed to generate the
 # Gaffer documentation.
 #
-	yum install -y \
+	dnf install -y \
+		xorg-x11-server-Xvfb \
 		mesa-dri-drivers.x86_64 \
 		metacity \
 		gnome-themes-standard && \
@@ -68,9 +117,22 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 	rm -f Inkscape-091e20e-x86_64.AppImage && \
 	cd - && \
 #
+# Install Optix headers for Cycles and OSL.
+#
+	mkdir /usr/local/NVIDIA-OptiX-SDK-7.3.0 && \
+	cd /usr/local/NVIDIA-OptiX-SDK-7.3.0 && \
+	curl -sL https://github.com/NVIDIA/optix-dev/archive/refs/tags/v7.3.0.tar.gz | tar -xz --strip-components=1 && \
+	cd - && \
+#
 # Install meson as it is needed to build LibEpoxy if building Cycles with USD support.
 #
 	pip install meson && \
+#
+# Install ninja as it is needed to build PySide.
+#
+	curl -sL https://github.com/ninja-build/ninja/releases/download/v1.13.2/ninja-linux.zip -o /tmp/ninja-linux.zip && \
+	unzip -n -d /usr/local/bin /tmp/ninja-linux.zip ninja && \
+	rm -f /tmp/ninja-linux.zip && \
 #
 # Install libraries needed by RenderMan.
 #
@@ -84,29 +146,11 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 #
 	dnf install -y podman && \
 #
-# Trim out a few things we don't need. We inherited a lot more than we need from
-# `aswf/ci-base`, and we run out of disk space on GitHub Actions if our container
-# is too big. A particular offender is CUDA, which comes with all sorts of
+# Trim out a few things we don't need from `nvidia/cuda`. We run out of disk space
+# on GitHub Actions if our container is too big. CUDA comes with all sorts of
 # bells and whistles we don't need, and is responsible for at least 5Gb of the
-# total image size. We also remove much of the `ci-base` provided builds of LLVM
-# and Boost. Removing these plus some additional CUDA packages brings the image
-# size down to ~3.5GB.
-	rm -rf /usr/local/lib/clang && \
-	rm -f /usr/local/lib/libclang* && \
-	rm -f /usr/local/lib/libLLVM* && \
-	rm -f /usr/local/lib/libLTO* && \
-	rm -f /usr/local/lib/liblld* && \
-	rm -f /usr/local/lib/libboost* && \
-	rm -f /usr/local/bin/clang* && \
-	rm -f /usr/local/bin/ll* && \
-	rm -f /usr/local/bin/opt && \
-	rm -f /usr/local/bin/bugpoint && \
-	rm -rf /var/opt/sonar-scanner-4.8.0.2856-linux && \
-	rm -rf /tmp/downloads && \
-	rm -rf /opt/conan && \
-	rm -rf /usr/local/include/boost && \
-	rm -rf /usr/local/include/llvm* && \
-	rm -rf /usr/local/include/clang* && \
+# total image size.
+	rm -rf /usr/local/doc && \
 	rm -rf /usr/share/doc && \
 	dnf remove -y \
 		java-1.8.0-openjdk-headless \
@@ -134,14 +178,6 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 	rm -rf /var/cache/dnf && \
 	rm -rf /var/log/*
 
-# Set WORKDIR back to / to match the behaviour of our CentOS 7 container.
-# This makes it easier to deal with copying build artifacts as they will be
-# in the same location in both containers.
-WORKDIR /
-
-# ci-base sets PYTHONPATH, so we override it back to nothing for our env
-ENV PYTHONPATH=
-#
 # Inkscape 1.3.2 prints "Setting _INKSCAPE_GC=disable as a workaround for broken libgc"
 # every time it is run, so we set it ourselves to silence that
 ENV _INKSCAPE_GC="disable"
@@ -149,3 +185,14 @@ ENV _INKSCAPE_GC="disable"
 # Make the Optix SDK and CUDA available to builds that require them.
 ENV OPTIX_ROOT_DIR=/usr/local/NVIDIA-OptiX-SDK-7.3.0
 ENV CUDA_PATH=/usr/local/cuda-11.8
+
+# Enable the software collections we want by default, no matter how we enter the
+# container. For details, see :
+#
+# https://austindewey.com/2019/03/26/enabling-software-collections-binaries-on-a-docker-image/
+
+RUN printf "unset BASH_ENV PROMPT_COMMAND ENV\nsource scl_source enable gcc-toolset-11\n" > /usr/bin/scl_enable
+
+ENV BASH_ENV="/usr/bin/scl_enable" \
+	ENV="/usr/bin/scl_enable" \
+	PROMPT_COMMAND=". /usr/bin/scl_enable"
