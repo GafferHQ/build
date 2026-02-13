@@ -2,7 +2,7 @@
 # the glibc requirements of VFXPlatform 2023 (2.28 or lower), with some of our
 # build dependencies already pre-installed.
 
-FROM nvidia/cuda:11.8.0-devel-rockylinux8
+FROM nvidia/cuda:12.8.0-devel-rockylinux8
 
 # Identify the build environment. This can be used by build processes for
 # environment specific behaviour such as naming artifacts built from this
@@ -154,16 +154,17 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 	rm -rf /usr/share/doc && \
 	dnf remove -y \
 		java-1.8.0-openjdk-headless \
-		cuda-nsight-compute-11-8.x86_64 \
-		libcublas-devel-11-8-11.11.3.6-1.x86_64 \
-		libcublas-11-8 libnccl libnccl-devel \
-		libnpp-11-8 libnpp-devel-11-8 cuda-cupti-11-8 && \
+		cuda-nsight-compute-12-8.x86_64 \
+		libcublas-12-8 libcublas-devel-12-8 \
+		libnccl libnccl-devel \
+		libnpp-12-8 libnpp-devel-12-8 \
+		cuda-cupti-12-8 cuda-compat-12-8 && \
 #
 # After trimming down CUDA, reinstall only the specific CUDA dependencies
 # required for OSL Optix builds.
 	dnf install -y \
-		cuda-nvrtc-devel-11-8 \
-		libcurand-devel-11-8 && \
+		cuda-nvrtc-devel-12-8 \
+		libcurand-devel-12-8 && \
 #
 # Now we've installed all our packages, update yum-versionlock for all the
 # new packages so we can copy the versionlock.list out of the container when we
@@ -184,7 +185,7 @@ ENV _INKSCAPE_GC="disable"
 
 # Make the Optix SDK and CUDA available to builds that require them.
 ENV OPTIX_ROOT_DIR=/usr/local/NVIDIA-OptiX-SDK-7.3.0
-ENV CUDA_PATH=/usr/local/cuda-11.8
+ENV CUDA_PATH=/usr/local/cuda-12.8
 
 # Enable the software collections we want by default, no matter how we enter the
 # container. For details, see :

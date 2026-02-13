@@ -1,3 +1,8 @@
+4.x.x
+=====
+
+- Containerfile : Changed base image to `nvidia/cuda:12.8.0-devel-rockylinux8`.
+
 4.0.0a1
 =======
 
