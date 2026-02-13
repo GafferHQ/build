@@ -91,6 +91,12 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 		mesa-dri-drivers.x86_64 \
 		metacity \
 		gnome-themes-standard && \
+#
+# Install sudo as it's currently needed to
+# run Gaffer's test suite on CI.
+#
+	dnf install -y sudo && \
+#
 # Note: When updating these, also update the MacOS setup in .github/workflows/main.yaml
 # (in GafferHQ/gaffer).
 	pip install \

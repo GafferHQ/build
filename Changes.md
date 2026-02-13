@@ -4,6 +4,9 @@
 - Containerfile :
   - Changed base image to `nvidia/cuda:12.8.0-devel-rockylinux8`.
   - Updated OptiX to 8.0.0.
+  - Added `sudo` [^1].
+
+[^1]: To be omitted from the notes for the final 4.0.0 release.
 
 4.0.0a1
 =======
