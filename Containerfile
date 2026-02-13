@@ -100,6 +100,7 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 # Note: When updating these, also update the MacOS setup in .github/workflows/main.yaml
 # (in GafferHQ/gaffer).
 	pip install \
+		setuptools==81.0.0 \
 		sphinx==4.3.1 \
 		sphinxcontrib-applehelp==1.0.4 \
 		sphinxcontrib-devhelp==1.0.2 \
