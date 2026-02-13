@@ -121,7 +121,7 @@ parser.add_argument(
 parser.add_argument(
 	"--container-image-version",
 	dest = "containerImageVersion",
-	default = "4.0.0a1",
+	default = "4.0.0a2",
 	help = "The image tag to use for container builds."
 )
 
