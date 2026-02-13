@@ -1,7 +1,9 @@
 4.x.x
 =====
 
-- Containerfile : Changed base image to `nvidia/cuda:12.8.0-devel-rockylinux8`.
+- Containerfile :
+  - Changed base image to `nvidia/cuda:12.8.0-devel-rockylinux8`.
+  - Updated OptiX to 8.0.0.
 
 4.0.0a1
 =======

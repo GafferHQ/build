@@ -119,9 +119,9 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 #
 # Install Optix headers for Cycles and OSL.
 #
-	mkdir /usr/local/NVIDIA-OptiX-SDK-7.3.0 && \
-	cd /usr/local/NVIDIA-OptiX-SDK-7.3.0 && \
-	curl -sL https://github.com/NVIDIA/optix-dev/archive/refs/tags/v7.3.0.tar.gz | tar -xz --strip-components=1 && \
+	mkdir /usr/local/NVIDIA-OptiX-SDK-8.0.0 && \
+	cd /usr/local/NVIDIA-OptiX-SDK-8.0.0 && \
+	curl -sL https://github.com/NVIDIA/optix-dev/archive/refs/tags/v8.0.0.tar.gz | tar -xz --strip-components=1 && \
 	cd - && \
 #
 # Install meson as it is needed to build LibEpoxy if building Cycles with USD support.
@@ -184,7 +184,7 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 ENV _INKSCAPE_GC="disable"
 
 # Make the Optix SDK and CUDA available to builds that require them.
-ENV OPTIX_ROOT_DIR=/usr/local/NVIDIA-OptiX-SDK-7.3.0
+ENV OPTIX_ROOT_DIR=/usr/local/NVIDIA-OptiX-SDK-8.0.0
 ENV CUDA_PATH=/usr/local/cuda-12.8
 
 # Enable the software collections we want by default, no matter how we enter the
