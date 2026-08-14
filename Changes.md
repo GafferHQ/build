@@ -1,7 +1,9 @@
 5.x.x
 =====
 
-- Containerfile : Updated GCC to 14.2.1.
+- Containerfile :
+  - Updated GCC to 14.2.1.
+  - Added `wayland-devel`.
 
 4.0.0
 =====

@@ -71,6 +71,7 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 		# Required by Qt
 		fontconfig-devel.x86_64 \
 		libxkbcommon-x11-devel.x86_64 \
+		wayland-devel \
 		xcb-util-renderutil-devel \
 		xcb-util-wm-devel \
 		xcb-util-devel \
