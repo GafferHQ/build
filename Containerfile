@@ -51,7 +51,7 @@ RUN yum install -y 'dnf-command(versionlock)' && \
 # Install GCC Toolset 11.
 #
 	dnf groupinstall -y --setopt=install_weak_deps=False "Development Tools" && \
-	dnf install -y gcc-toolset-11 && \
+	dnf install -y gcc-toolset-14 && \
 #
 # Install packages needed to build Gaffer's dependencies.
 #
@@ -199,7 +199,7 @@ ENV CUDA_PATH=/usr/local/cuda-12.8
 #
 # https://austindewey.com/2019/03/26/enabling-software-collections-binaries-on-a-docker-image/
 
-RUN printf "unset BASH_ENV PROMPT_COMMAND ENV\nsource scl_source enable gcc-toolset-11\n" > /usr/bin/scl_enable
+RUN printf "unset BASH_ENV PROMPT_COMMAND ENV\nsource scl_source enable gcc-toolset-14\n" > /usr/bin/scl_enable
 
 ENV BASH_ENV="/usr/bin/scl_enable" \
 	ENV="/usr/bin/scl_enable" \
